@@ -44,9 +44,10 @@ export default function Home() {
     setResult(null);
 
     const form = new FormData();
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     const endpoint = combined && files.length > 1
-      ? "http://localhost:8000/api/upload/combined"
-      : "http://localhost:8000/api/upload";
+      ? `${base}/api/upload/combined`
+      : `${base}/api/upload`;
 
     if (combined && files.length > 1) {
       files.forEach(f => form.append("files", f));
