@@ -42,6 +42,14 @@ def combine_and_score(pdf_paths: list[Path]) -> dict:
     metrics = parser.compute_metrics(all_txns, combined_meta)
     score = engine.score(ScoringInputs(**metrics))
 
+    monthly = parser.compute_monthly_breakdown(all_txns)
+    for m in monthly:
+        if "balance" in m and m["balance"] is not None:
+            m["balance"] = float(m["balance"])
+        m["income"] = float(m["income"])
+        m["expenses"] = float(m["expenses"])
+        m["net"] = float(m["net"])
+
     return {
         "success": True,
         "statements_combined": len(pdf_paths),
@@ -56,5 +64,6 @@ def combine_and_score(pdf_paths: list[Path]) -> dict:
         "breakdown": score.breakdown,
         "confidence": score.confidence,
         "metrics": {k: str(v) for k, v in metrics.items()},
+        "monthly": monthly,
         "metadata": combined_meta.model_dump(exclude_none=True),
     }

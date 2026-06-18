@@ -58,6 +58,14 @@ async def upload_statement(file: UploadFile) -> dict:
         score_result = scoring_engine.score(inputs)
         score_result.confidence = confidence
 
+        monthly = parser.compute_monthly_breakdown(transactions)
+        for m in monthly:
+            if "balance" in m and m["balance"] is not None:
+                m["balance"] = float(m["balance"])
+            m["income"] = float(m["income"])
+            m["expenses"] = float(m["expenses"])
+            m["net"] = float(m["net"])
+
         return {
             "success": True,
             "score": score_result.score,
@@ -65,6 +73,8 @@ async def upload_statement(file: UploadFile) -> dict:
             "max_loan_amount": float(score_result.max_loan_amount),
             "breakdown": score_result.breakdown,
             "confidence": score_result.confidence,
+            "metrics": {k: str(v) for k, v in inputs.model_dump().items()},
+            "monthly": monthly,
             "metadata": metadata.model_dump(exclude_none=True),
             "transaction_count": len(transactions),
         }

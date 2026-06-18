@@ -1,6 +1,21 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import GaugeChart from "../components/GaugeChart";
+import BreakdownBarChart from "../components/BreakdownBarChart";
+import DonutChart from "../components/DonutChart";
+import MonthlyChart from "../components/MonthlyChart";
+import BalanceTrendChart from "../components/BalanceTrendChart";
+import RadarChart from "../components/RadarChart";
+import MetricCards from "../components/MetricCards";
+
+type MonthlyEntry = {
+  month: string;
+  income: number;
+  expenses: number;
+  net: number;
+  balance: number | null;
+};
 
 type ScoreResult = {
   success: boolean;
@@ -14,6 +29,7 @@ type ScoreResult = {
   statementsCombined?: number;
   dateRange?: { from: string; to: string };
   metrics?: Record<string, string>;
+  monthly?: MonthlyEntry[];
 };
 
 export default function Home() {
@@ -69,18 +85,8 @@ export default function Home() {
     }
   };
 
-  const tierColor = (tier: string) => {
-    switch (tier) {
-      case "Low": return "text-green-400";
-      case "Medium": return "text-yellow-400";
-      case "High": return "text-orange-400";
-      case "Decline": return "text-red-400";
-      default: return "text-gray-400";
-    }
-  };
-
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
+    <main className="mx-auto max-w-6xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold">SA Lender</h1>
       <p className="mb-8 text-gray-400">
         Upload one or more PDF bank statements for a lending risk score.
@@ -140,43 +146,84 @@ export default function Home() {
       )}
 
       {result && (
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 space-y-6">
           <div className="rounded-xl bg-gray-900 p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Score: {result.score}/100</h2>
-              <span className={`text-2xl font-bold ${tierColor(result.riskTier)}`}>
+            <div className="mb-2 flex items-center justify-between">
+              <span className={`text-2xl font-bold ${result.riskTier === "Low" ? "text-green-400" : result.riskTier === "Medium" ? "text-yellow-400" : result.riskTier === "High" ? "text-orange-400" : "text-red-400"}`}>
                 {result.riskTier}
               </span>
-            </div>
-
-            <div className="mb-4 h-3 overflow-hidden rounded-full bg-gray-700">
-              <div
-                className="h-full rounded-full bg-blue-500 transition-all"
-                style={{ width: `${result.score}%` }}
-              />
-            </div>
-
-            <p className="text-lg">
-              Max loan amount:{" "}
-              <span className="font-semibold text-green-400">
-                ${result.maxLoanAmount.toLocaleString()}
-              </span>
-            </p>
-            <p className="text-sm text-gray-400">
-              Confidence: {(result.confidence * 100).toFixed(0)}% &middot;{" "}
-              {result.transactionCount} transactions
-              {result.statementsCombined ? ` from ${result.statementsCombined} statements` : ""}
-            </p>
-            {result.dateRange && (
-              <p className="text-sm text-gray-500">
-                {result.dateRange.from} → {result.dateRange.to}
+              <p className="text-sm text-gray-400">
+                Confidence: {(result.confidence * 100).toFixed(0)}% &middot;{" "}
+                {result.transactionCount} transactions
+                {result.statementsCombined ? ` from ${result.statementsCombined} statements` : ""}
               </p>
-            )}
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <GaugeChart score={result.score} riskTier={result.riskTier} />
+                <p className="mt-2 text-center text-lg">
+                  Max loan:{" "}
+                  <span className="font-semibold text-green-400">
+                    ${result.maxLoanAmount.toLocaleString()}
+                  </span>
+                </p>
+                {result.dateRange && (
+                  <p className="text-center text-sm text-gray-500">
+                    {result.dateRange.from} → {result.dateRange.to}
+                  </p>
+                )}
+              </div>
+              <div className="lg:col-span-2">
+                {result.metrics && <MetricCards metrics={result.metrics} />}
+              </div>
+            </div>
           </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-xl bg-gray-900 p-4">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+                Score Breakdown
+              </h3>
+              <BreakdownBarChart breakdown={result.breakdown} />
+            </div>
+            <div className="rounded-xl bg-gray-900 p-4">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+                Weight Distribution
+              </h3>
+              <DonutChart breakdown={result.breakdown} />
+            </div>
+          </div>
+
+          {result.monthly && result.monthly.length > 0 && (
+            <>
+              <div className="rounded-xl bg-gray-900 p-4">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+                  Monthly Income vs Expenses
+                </h3>
+                <MonthlyChart data={result.monthly} />
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="rounded-xl bg-gray-900 p-4">
+                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+                    Balance Trend
+                  </h3>
+                  <BalanceTrendChart data={result.monthly} />
+                </div>
+                <div className="rounded-xl bg-gray-900 p-4">
+                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+                    Financial Health Profile
+                  </h3>
+                  <RadarChart breakdown={result.breakdown} />
+                </div>
+              </div>
+            </>
+          )}
 
           <details className="rounded-xl bg-gray-900 p-4">
             <summary className="cursor-pointer font-medium text-gray-300">
-              Breakdown Details
+              Raw Breakdown Values
             </summary>
             <div className="mt-3 space-y-2">
               {Object.entries(result.breakdown).map(([key, val]) => (
@@ -187,22 +234,6 @@ export default function Home() {
               ))}
             </div>
           </details>
-
-          {result.metrics && Object.keys(result.metrics).length > 0 && (
-            <details className="rounded-xl bg-gray-900 p-4">
-              <summary className="cursor-pointer font-medium text-gray-300">
-                Financial Metrics
-              </summary>
-              <div className="mt-3 space-y-1 text-sm text-gray-400">
-                {Object.entries(result.metrics).map(([key, val]) => (
-                  <div key={key} className="flex justify-between">
-                    <span>{key.replace(/_/g, " ")}:</span>
-                    <span>{key.includes("count") ? val : `$${Number(val).toLocaleString()}`}</span>
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
 
           {result.metadata && Object.keys(result.metadata).length > 0 && (
             <details className="rounded-xl bg-gray-900 p-4">

@@ -21,6 +21,14 @@ export interface ExtractionResult {
   confidence: number
 }
 
+export interface MonthlyEntry {
+  month: string
+  income: number
+  expenses: number
+  net: number
+  balance: number | null
+}
+
 export interface ScoringInputs {
   avgMonthlyNetCashflow: number
   incomeStability: number
@@ -30,6 +38,7 @@ export interface ScoringInputs {
   bankingRelationshipMonths: number
   totalMonthlyIncome: number
   totalMonthlyExpenses: number
+  monthlyBreakdown?: MonthlyEntry[]
 }
 
 export type RiskTier = "Low" | "Medium" | "High" | "Decline"

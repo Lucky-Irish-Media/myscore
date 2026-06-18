@@ -186,6 +186,33 @@ class TransactionParser:
             "total_monthly_expenses": Decimal(str(round(float(monthly["total_expenses"].mean()), 2))) if len(monthly) > 0 else Decimal("0.00"),
         }
 
+    def compute_monthly_breakdown(self, transactions: list[Transaction]) -> list[dict]:
+        import pandas as pd
+
+        if not transactions:
+            return []
+
+        df = pd.DataFrame([t.model_dump() for t in transactions])
+        df["date"] = pd.to_datetime(df["date"])
+        df["month"] = df["date"].dt.to_period("M").astype(str)
+        df["net"] = df["credit_amount"].astype(float) - df["debit_amount"].astype(float)
+
+        monthly = df.groupby("month").agg(
+            income=("credit_amount", "sum"),
+            expenses=("debit_amount", "sum"),
+            net=("net", "sum"),
+        ).reset_index()
+
+        monthly["income"] = monthly["income"].round(2)
+        monthly["expenses"] = monthly["expenses"].round(2)
+        monthly["net"] = monthly["net"].round(2)
+
+        ending = df.dropna(subset=["balance"]).groupby("month")["balance"].last().astype(float).round(2).reset_index()
+        ending.columns = ["month", "balance"]
+
+        result = monthly.merge(ending, on="month", how="left")
+        return result.to_dict(orient="records")
+
     def _empty_metrics(self) -> dict:
         return {
             "avg_monthly_net_cashflow": Decimal("0.00"),

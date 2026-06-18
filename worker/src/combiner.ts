@@ -52,6 +52,7 @@ export async function combineAndScore(pdfBuffers: ArrayBuffer[]): Promise<Record
     metrics: Object.fromEntries(
       Object.entries(metrics).map(([k, v]) => [k, String(v)])
     ),
+    monthly: metrics.monthlyBreakdown || [],
     metadata: Object.fromEntries(
       Object.entries(combinedMeta).filter(([_, v]) => v !== undefined) as [string, string][]
     ),

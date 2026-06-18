@@ -72,6 +72,17 @@ export function computeMetrics(
     bankingRelationshipMonths: months.length,
     totalMonthlyIncome: Math.round(avgIncome * 100) / 100,
     totalMonthlyExpenses: Math.round(avgExpenses * 100) / 100,
+    monthlyBreakdown: monthlyData.map(md => {
+      const withBal = (monthlyMap.get(md.month) || []).filter(t => t.balance !== null)
+      const lastBal = withBal.length > 0 ? withBal[withBal.length - 1].balance! : null
+      return {
+        month: md.month,
+        income: Math.round(md.income * 100) / 100,
+        expenses: Math.round(md.expenses * 100) / 100,
+        net: Math.round(md.net * 100) / 100,
+        balance: lastBal !== null ? Math.round(lastBal * 100) / 100 : null,
+      }
+    }),
   }
 }
 
