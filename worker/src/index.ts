@@ -14,8 +14,8 @@ app.get("/health", (c) => c.json({ status: "ok" }))
 
 app.post("/api/upload", async (c) => {
   const form = await c.req.formData()
-  const file = form.get("file")
-  if (!file || !(file instanceof File)) {
+  const file = form.get("file") as File | null
+  if (!file) {
     return c.json({ error: "No file uploaded" }, 400)
   }
   if (!file.name.toLowerCase().endsWith(".pdf")) {
@@ -45,7 +45,7 @@ app.post("/api/upload", async (c) => {
 
 app.post("/api/upload/combined", async (c) => {
   const form = await c.req.formData()
-  const files = form.getAll("files") as File[]
+  const files = form.getAll("files") as unknown as File[]
 
   if (files.length < 2) {
     return c.json({ error: "Upload at least 2 PDF statements" }, 400)

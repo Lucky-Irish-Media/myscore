@@ -5,14 +5,14 @@ import { useCallback, useState } from "react";
 type ScoreResult = {
   success: boolean;
   score: number;
-  risk_tier: string;
-  max_loan_amount: number;
+  riskTier: string;
+  maxLoanAmount: number;
   breakdown: Record<string, number>;
   confidence: number;
   metadata: Record<string, string>;
-  transaction_count: number;
-  statements_combined?: number;
-  date_range?: { from: string; to: string };
+  transactionCount: number;
+  statementsCombined?: number;
+  dateRange?: { from: string; to: string };
   metrics?: Record<string, string>;
 };
 
@@ -44,7 +44,7 @@ export default function Home() {
     setResult(null);
 
     const form = new FormData();
-    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const base = process.env.NEXT_PUBLIC_API_URL || "";
     const endpoint = combined && files.length > 1
       ? `${base}/api/upload/combined`
       : `${base}/api/upload`;
@@ -59,7 +59,7 @@ export default function Home() {
       const res = await fetch(endpoint, { method: "POST", body: form });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail || "Upload failed");
+        throw new Error(err.error || err.detail || "Upload failed");
       }
       setResult(await res.json());
     } catch (e: any) {
@@ -144,8 +144,8 @@ export default function Home() {
           <div className="rounded-xl bg-gray-900 p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Score: {result.score}/100</h2>
-              <span className={`text-2xl font-bold ${tierColor(result.risk_tier)}`}>
-                {result.risk_tier}
+              <span className={`text-2xl font-bold ${tierColor(result.riskTier)}`}>
+                {result.riskTier}
               </span>
             </div>
 
@@ -159,17 +159,17 @@ export default function Home() {
             <p className="text-lg">
               Max loan amount:{" "}
               <span className="font-semibold text-green-400">
-                ${result.max_loan_amount.toLocaleString()}
+                ${result.maxLoanAmount.toLocaleString()}
               </span>
             </p>
             <p className="text-sm text-gray-400">
               Confidence: {(result.confidence * 100).toFixed(0)}% &middot;{" "}
-              {result.transaction_count} transactions
-              {result.statements_combined ? ` from ${result.statements_combined} statements` : ""}
+              {result.transactionCount} transactions
+              {result.statementsCombined ? ` from ${result.statementsCombined} statements` : ""}
             </p>
-            {result.date_range && (
+            {result.dateRange && (
               <p className="text-sm text-gray-500">
-                {result.date_range.from} → {result.date_range.to}
+                {result.dateRange.from} → {result.dateRange.to}
               </p>
             )}
           </div>
