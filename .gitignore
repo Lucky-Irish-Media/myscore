@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.egg-info/
+dist/
+build/
+.ruff_cache/
+
+# Sensitive — contain PII (names, account numbers, transactions)
+statement1.pdf
+statement2.pdf
+statement3.pdf
+Bank Account Summary _ USAA.pdf
+
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+frontend/node_modules/
