@@ -17,3 +17,9 @@ frontend/.next/
 frontend/out/
 frontend/next-env.d.ts
 frontend/node_modules/
+node_modules/
+.wrangler/
+dist/
+.vscode/
+.DS_Store
+*.log
